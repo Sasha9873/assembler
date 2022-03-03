@@ -10,7 +10,7 @@ WIND_WIDTH    	= 160d
 FRAME_WIDTH	= 16d
 HEIGTH		equ 7d
 
-ARRAY		= 3
+ARRAY		= 2
 
 MESLEN		= 6
 
@@ -65,14 +65,15 @@ Up:		mov di, SPACE
 		
 		mov bx, HEIGTH - 2
 		shr bx, 1
+		add bx, 1
 		mov [Heigth_2], bx
 
 		mov bx, HEIGTH - 2
 
 		mov [CurDi], dx
 	
-Middle:		cmp bx, Heigth_2
-		je Message_
+Middle:		;cmp bx, Heigth_2
+		;je Message_
 		mov ax, ARRAY
 		cmp ax, 2
 		je MidArray2
@@ -83,12 +84,7 @@ Middle:		cmp bx, Heigth_2
 Console:	mov si, 082h + 3 ;addr of buffer
 		jmp AllMiddle
 
-Message_:	mov si, offset Message
-		add dx, WIND_WIDTH
-		mov di, dx
-		mov [CurDi], di
-		mov cx, FRAME_WIDTH
-		call PrintMessage
+Message_:	call PrintMessage
 		sub bx, 1
 		cmp bx, 0
 		ja Middle
@@ -99,6 +95,8 @@ AllMiddle: 	mov dx, [CurDi]
 		mov di, dx
 		mov [CurDi], di
 		mov cx, FRAME_WIDTH
+		cmp bx, Heigth_2
+		je Message_
 		call DrawLine
 		sub bx, 1
 		cmp bx, 0
@@ -198,10 +196,11 @@ PrintMessage	proc
 		mov dx, si
 		sub dx, 1
 
-Print:		mov si, offset Message
+		mov si, offset Message
 		mov cx, MESLEN
-		lodsb
+Print:		lodsb
 		stosw
+		sub cx, 1
 		cmp cx, 0
 		ja Print
 
