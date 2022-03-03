@@ -60,7 +60,7 @@ Up:		mov di, SPACE
 	
 
 ;------------------------------------------------
-;Middle   поменять Message_ в si надо писать не адрес message, а нужного Array
+;Middle   
 ;------------------------------------------------
 		
 		mov bx, HEIGTH - 2
@@ -111,6 +111,8 @@ AllMiddle: 	mov dx, [CurDi]
 		mov cx, FRAME_WIDTH
 		call DrawLine
 		
+		mov ah, 86h
+		int 15h		
 
 		mov ax, 4c00h
 		int 21h
