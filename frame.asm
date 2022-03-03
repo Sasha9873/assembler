@@ -12,6 +12,8 @@ HEIGTH		equ 7d
 
 ARRAY		= 3
 
+MESLEN		= 6
+
 SPACE		equ (5*WIND_WIDTH + WIND_WIDTH/2 - FRAME_WIDTH/2)  ;pointer to the top left corner
 
 
@@ -58,7 +60,7 @@ Up:		mov di, SPACE
 	
 
 ;------------------------------------------------
-;Middle
+;Middle   поменять Message_ в si надо писать не адрес message, а нужного Array
 ;------------------------------------------------
 		
 		mov bx, HEIGTH - 2
@@ -70,7 +72,7 @@ Up:		mov di, SPACE
 		mov [CurDi], dx
 	
 Middle:		cmp bx, Heigth_2
-		je Message 
+		je Message_
 		mov ax, ARRAY
 		cmp ax, 2
 		je MidArray2
@@ -81,7 +83,7 @@ Middle:		cmp bx, Heigth_2
 Console:	mov si, 082h + 3 ;addr of buffer
 		jmp AllMiddle
 
-Message:	mov si, offset Message
+Message_:	mov si, offset Message
 		add dx, WIND_WIDTH
 		mov di, dx
 		mov [CurDi], di
@@ -121,14 +123,13 @@ CharArray	db '737545090'
 
 CharArray2	db '+-+|_|+-+'
 
-Heigth_2	db HEIGTH - 2
+Heigth_2	dw HEIGTH - 2
 
 Message		db 'Hello!'
-MESLEN		db 6
 
-CurDi		db SPACE
+CurDi		dw SPACE
 
-LeftLenFrame	db 0
+LeftLenFrame	dw 0
 
 ;------------------------------------------------
 ; Draws a horison line
