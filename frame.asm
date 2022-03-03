@@ -10,6 +10,8 @@ WIND_WIDTH    	= 160d
 FRAME_WIDTH	= 16d
 HEIGTH		equ 7d
 
+ARRAY		= 3
+
 SPACE		equ (5*WIND_WIDTH + WIND_WIDTH/2 - FRAME_WIDTH/2)  ;pointer to the top left corner
 
 
@@ -20,9 +22,19 @@ Start:		mov ax, VIDEOSEG
 ;------------------------------------------------
 ;Up
 ;------------------------------------------------
+		mov ax, ARRAY
+		cmp ax, 2
+		je UpArray2
+		ja UpConsole
+		mov si, offset CharArray
+		jmp Up 
 
-                mov si, offset CharArray
-		mov di, SPACE
+UpConsole:	mov si, 082h ;addr of buffer
+		jmp Up 
+
+
+UpArray2:       mov si, offset CharArray2
+Up:		mov di, SPACE
 		mov dx, di
 		mov cx, FRAME_WIDTH
 		call DrawLine
@@ -51,8 +63,18 @@ Start:		mov ax, VIDEOSEG
 
 		mov bx, HEIGTH - 2
 
-Middle:         mov si, offset CharArray + 3
-		add dx, WIND_WIDTH
+Middle:		mov ax, ARRAY
+		cmp ax, 2
+		je MidArray2
+		ja Console
+		mov si, offset CharArray + 3
+		jmp AllMiddle
+
+Console:	mov si, 082h + 3 ;addr of buffer
+		jmp AllMiddle
+
+MidArray2:      mov si, offset CharArray2 + 3
+AllMiddle: 	add dx, WIND_WIDTH
 		mov di, dx
 		mov cx, FRAME_WIDTH
 		call DrawLine
@@ -63,7 +85,7 @@ Middle:         mov si, offset CharArray + 3
 ;------------------------------------------------
 ;Down
 ;------------------------------------------------
-
+	
 		add dx, WIND_WIDTH
 		mov di, dx
 		mov cx, FRAME_WIDTH
@@ -75,7 +97,7 @@ Middle:         mov si, offset CharArray + 3
 
 _Str		db "console arg:$"
 
-CharArray	db '7-7|_|0+0'
+CharArray	db '737545090'
 
 CharArray2	db '+-+|_|+-+'
 
