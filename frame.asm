@@ -60,10 +60,18 @@ Up:		mov di, SPACE
 ;------------------------------------------------
 ;Middle
 ;------------------------------------------------
+		
+		mov bx, HEIGTH - 2
+		shr bx, 1
+		mov [Heigth_2], bx
 
 		mov bx, HEIGTH - 2
 
-Middle:		mov ax, ARRAY
+		mov [CurDi], dx
+	
+Middle:		cmp bx, Heigth_2
+		je Message 
+		mov ax, ARRAY
 		cmp ax, 2
 		je MidArray2
 		ja Console
@@ -73,9 +81,21 @@ Middle:		mov ax, ARRAY
 Console:	mov si, 082h + 3 ;addr of buffer
 		jmp AllMiddle
 
-MidArray2:      mov si, offset CharArray2 + 3
-AllMiddle: 	add dx, WIND_WIDTH
+Message:	mov si, offset Message
+		add dx, WIND_WIDTH
 		mov di, dx
+		mov [CurDi], di
+		mov cx, FRAME_WIDTH
+		call PrintMessage
+		sub bx, 1
+		cmp bx, 0
+		ja Middle
+
+MidArray2:      mov si, offset CharArray2 + 3
+AllMiddle: 	mov dx, [CurDi]
+		add dx, WIND_WIDTH
+		mov di, dx
+		mov [CurDi], di
 		mov cx, FRAME_WIDTH
 		call DrawLine
 		sub bx, 1
@@ -101,7 +121,14 @@ CharArray	db '737545090'
 
 CharArray2	db '+-+|_|+-+'
 
-Heigth_2	db HEIGTH
+Heigth_2	db HEIGTH - 2
+
+Message		db 'Hello!'
+MESLEN		db 6
+
+CurDi		db SPACE
+
+LeftLenFrame	db 0
 
 ;------------------------------------------------
 ; Draws a horison line
@@ -120,6 +147,8 @@ DrawLine	proc
 
 		mov ah, COLOR
 
+		sub cx, 2
+
 @@begin_line:	lodsb       ; mov al, [si]; inc si;
 		stosw       ; mov es:[di], ax; add di, 2
 		
@@ -128,6 +157,60 @@ DrawLine	proc
 		
 		lodsb
 @@end_line:	stosw
+
+		ret
+		endp
+
+;------------------------------------------------
+; Print message in the frame.
+;
+; Entry: SI = addr of array containing frame symbols : [Lft] [Mid]..[Mid] [Rgt]
+;	 DI = dtart addr to draw
+;	 CX = line length
+; Exit	 None
+; Note:	 ES = Video Seg addr
+; Destroy: AX CX DX SI DI
+;------------------------------------------------
+
+PrintMessage	proc
+	
+		cld
+		
+		sub cx, 2
+
+		mov ax, cx
+		sub ax, MESLEN
+		shr ax, 1
+		mov [LeftLenFrame], ax
+
+		mov ah, COLOR
+
+		lodsb       ; mov al, [si]; inc si;
+		stosw       ; mov es:[di], ax; add di, 2
+		
+		;mov dx, cx
+
+		mov cx, [LeftLenFrame]		
+		lodsb
+		rep stosw   ; while(cx--){*(di+2) = *ax}
+		
+		mov dx, si
+		sub dx, 1
+
+Print:		mov si, offset Message
+		mov cx, MESLEN
+		lodsb
+		stosw
+		cmp cx, 0
+		ja Print
+
+		mov si, dx
+		mov cx, [LeftLenFrame]		
+		lodsb
+		rep stosw   ; while(cx--){*(di+2) = *ax}
+		
+		lodsb
+		stosw
 
 		ret
 		endp
