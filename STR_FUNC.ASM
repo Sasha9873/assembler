@@ -21,7 +21,15 @@ Start:		mov ax, VIDEOSEG
 		mov es, ax  ; now es pointes to video segment
 
 		mov si, offset _Str		
-		call Strlen		
+		call Strlen	
+
+
+
+		mov ah, COLOR
+		
+		mov si, offset _Str
+		lodsb       ; mov al, [si]; inc si;
+		stosw       ; mov es:[di], ax; add di, 2	
 
 		mov ax, offset _Str
 		push ax
@@ -29,11 +37,18 @@ Start:		mov ax, VIDEOSEG
 		push ax
 		call StrCpy 	
 
+		mov ah, COLOR
+		
+		mov si, offset _Str
+		lodsb       ; mov al, [si]; inc si;
+		stosw       ; mov es:[di], ax; add di, 2
+
+
 		mov ax, 4c00h
 		int 21h
 
-_Str		db "Mew$"
-_Str2		db "Hello$"
+_Str2		db "Mew$"
+_Str		db "Hello$"
 
 
 ;------------------------------------------------
@@ -64,15 +79,36 @@ Count:		lodsb   ; mov al, [si]; inc si;
 ;------------------------------------------------
 ; Copy second str to the first str .
 ; Entry: push in stack addr of the first str then addr of the second str
-; Returns: CX = str len
-; Note: strs end with $
-; Destroy: CX, SI
+; Returns: None
+; Note: strs end with $, len first str >= len second str
+; Destroy: None
 ;------------------------------------------------
 StrCpy		proc
 		
 		push bp
 		mov bp, sp
-		sub 
+		sub sp, 4   ; spece for uninitialised variable
+		
+		push si
+		push ax
+		;push cx
+		push bx
+				 
+		mov si, [bp + 2]    ; copy this (second)
+		move bx, [bp + 4]   ; copy in it (first)
+
+		;call Strlen  ; now cx = strlen of second str
+
+Copy:		lodsb      ; mov al, [si]; inc si;
+		mov bx, al;
+		inc bx     ; move pointer 	 
+		cmp al, '$'
+		jne Copy		
+		    
+		pop bx				
+		;pop cx
+		pop ax
+		pop si
 
 		ret
 		endp
