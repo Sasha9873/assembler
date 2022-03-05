@@ -49,7 +49,14 @@ Start:		mov ax, VIDEOSEG
                 mov dx, offset _Str   ;dx = &HelloStr;
                 int 21h
 
-		mov ah, COLOR
+		push offset _Str2
+		push '$'
+		call StrChr
+		mov si, ax
+		lodsb
+		stosw
+
+		;mov ah, COLOR
 		
 		;mov si, offset _Str
 		;lodsb       ; mov al, [si]; inc si;
@@ -127,5 +134,49 @@ Copy:		lodsb      ; mov al, [si]; inc si;
 
 		ret
 		endp
+
+
+;------------------------------------------------
+; Find first necessary symbol in str.
+; Entry: push in stack addr of the str then symbol you want to find.
+; Returns: AX = 0 if sym is not in str and else pointer to appropriate first symbol.
+; Note: strs end with $, len first str >= len second str
+; Destroy: AX
+;------------------------------------------------
+
+StrChr		proc
+
+		push bp
+		mov bp, sp
+		;sub sp, 4   ; spece for uninitialised variable
+
+		push si
+				 
+		mov si, [bp + 6]   ; SI = addr str
+		mov ah, [bp + 4]   ; AH = sym  		
+		    
+FindSym:	lodsb      ; mov al, [si]; inc si;		
+		cmp al, '$'
+		je NotFound
+		cmp al, ah
+		jne FindSym				
+
+		mov ax, si
+		jmp Found
+
+NotFound:	cmp al, ah
+		je FindSym
+		mov ax, 1
+
+Found:		pop si	
+
+		dec ax			
+
+		pop bp
+
+		ret
+		endp
+		
+
 		
 end		Start
