@@ -20,8 +20,9 @@ SPACE		equ (5*WIND_WIDTH + WIND_WIDTH/2 - FRAME_WIDTH/2)  ;pointer to the top le
 Start:		mov ax, VIDEOSEG
 		mov es, ax  ; now es pointes to video segment
 
-		mov si, offset _Str		
-		call Strlen	
+COMMENT *	mov si, offset _Str		
+		call Strlen
+	*	
 
 		mov di, SPACE + WIND_WIDTH
 
@@ -39,35 +40,81 @@ Start:		mov ax, VIDEOSEG
 
 		add di, WIND_WIDTH
 
-		mov ax, offset _Str
-		push ax
-		mov ax, offset _Str2
-		push ax
-		call StrCpy 	
+		;mov ax, offset _Str
+		;push ax
+		;mov ax, offset _Str2
+		;push ax
+		;call StrCpy 	
 
-		mov ah, 09h
-                mov dx, offset _Str   ;dx = &HelloStr;
-                int 21h
+		;mov ah, 09h
+                ;mov dx, offset _Str   ;dx = &HelloStr;
+                ;int 21h
 
-		push offset _Str2
+Comment *	push offset _Str2
 		push '$'
 		call StrChr
 		mov si, ax
 		lodsb
 		stosw
+	*
+		mov dx, 12
+		push dx
+		mov dx, offset _Str
+		push dx
+		push 10
+		call Itoa
 
-		;mov ah, COLOR
-		
-		;mov si, offset _Str
-		;lodsb       ; mov al, [si]; inc si;
-		;stosw       ; mov es:[di], ax; add di, 2
-
+		mov ah, 09h
+                mov dx, offset _Str   ;dx = &HelloStr;
+                int 21h
 
 		mov ax, 4c00h
 		int 21h
 
 _Str2		db "Mew$"
 _Str		db "Hello$"
+
+
+;------------------------------------------------
+; Do str from number (the base of the number system(radix) is in stack).
+; Entry: push in stack number, then addr of the str and then radix.
+; Returns: None
+; Note: str should be appropriate length.
+; Destroy: None
+;------------------------------------------------
+
+Itoa		proc
+
+		push bp
+		mov bp, sp
+		;sub sp, 4   ; space for uninitialised variable
+
+		push si ax bx cx dx
+				 
+		mov si, [bp + 6]   ; SI = addr of str
+		mov bh, [bp + 4]   ; BH = radix
+		mov ax, [bp + 8]   ; AX = number	
+		jmp Converting
+
+BegConv:	;mov al, ah
+		mov ah, 0
+Converting:	div bh
+		mov [si], ah
+		inc si
+		cmp al, 0
+		jne BegConv
+		;lodsb    ; mov al, [si]; inc si; 
+
+		;xchg   reverse str
+		;and divide another way if 2^n
+		
+		mov [si], '$'
+
+		pop dx cx bx ax si			
+		pop bp
+
+		ret
+		endp
 
 
 ;------------------------------------------------
@@ -140,7 +187,7 @@ Copy:		lodsb      ; mov al, [si]; inc si;
 ; Find first necessary symbol in str.
 ; Entry: push in stack addr of the str then symbol you want to find.
 ; Returns: AX = 0 if sym is not in str and else pointer to appropriate first symbol.
-; Note: strs end with $, len first str >= len second str
+; Note: strs end with $s
 ; Destroy: AX
 ;------------------------------------------------
 
@@ -165,9 +212,10 @@ FindSym:	lodsb      ; mov al, [si]; inc si;
 		jmp Found
 
 NotFound:	cmp al, ah
-		je FindSym
+		je Find
 		mov ax, 1
 
+Find:		mov ax, si
 Found:		pop si	
 
 		dec ax			
