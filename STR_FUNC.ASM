@@ -23,13 +23,21 @@ Start:		mov ax, VIDEOSEG
 		mov si, offset _Str		
 		call Strlen	
 
-
+		mov di, SPACE + WIND_WIDTH
 
 		mov ah, COLOR
+
+		mov ah, 09h
+                mov dx, offset _Str   ;dx = &HelloStr;
+                int 21h
+
+		add di, WIND_WIDTH
 		
 		mov si, offset _Str
 		lodsb       ; mov al, [si]; inc si;
 		stosw       ; mov es:[di], ax; add di, 2	
+
+		add di, WIND_WIDTH
 
 		mov ax, offset _Str
 		push ax
@@ -37,11 +45,15 @@ Start:		mov ax, VIDEOSEG
 		push ax
 		call StrCpy 	
 
+		mov ah, 09h
+                mov dx, offset _Str   ;dx = &HelloStr;
+                int 21h
+
 		mov ah, COLOR
 		
-		mov si, offset _Str
-		lodsb       ; mov al, [si]; inc si;
-		stosw       ; mov es:[di], ax; add di, 2
+		;mov si, offset _Str
+		;lodsb       ; mov al, [si]; inc si;
+		;stosw       ; mov es:[di], ax; add di, 2
 
 
 		mov ax, 4c00h
@@ -87,21 +99,22 @@ StrCpy		proc
 		
 		push bp
 		mov bp, sp
-		sub sp, 4   ; spece for uninitialised variable
-		
+		;sub sp, 4   ; spece for uninitialised variable
+
 		push si
 		push ax
 		;push cx
-		push bx
+		push bx		
 				 
-		mov si, [bp + 2]    ; copy this (second)
-		move bx, [bp + 4]   ; copy in it (first)
+		mov si, [bp + 4]    ; copy this (second)
+		mov bx, [bp + 6]   ; copy in it (first)
 
 		;call Strlen  ; now cx = strlen of second str
 
 Copy:		lodsb      ; mov al, [si]; inc si;
-		mov bx, al;
-		inc bx     ; move pointer 	 
+		;stosw
+		mov [bx], al;
+		inc bx     ; mov pointer 	 
 		cmp al, '$'
 		jne Copy		
 		    
@@ -109,6 +122,8 @@ Copy:		lodsb      ; mov al, [si]; inc si;
 		;pop cx
 		pop ax
 		pop si
+
+		pop bp
 
 		ret
 		endp
