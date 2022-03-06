@@ -57,11 +57,11 @@ Comment *	push offset _Str2
 		lodsb
 		stosw
 	*
-		mov dx, 12
-		push dx
+		
+		push 12
 		mov dx, offset _Str
 		push dx
-		push 10
+		push 16
 		call Itoa
 
 		mov ah, 09h
@@ -99,16 +99,41 @@ Itoa		proc
 BegConv:	;mov al, ah
 		mov ah, 0
 Converting:	div bh
+		;cmp ah, 9
+		;ja Bigger
 		mov [si], ah
 		inc si
 		cmp al, 0
 		jne BegConv
-		;lodsb    ; mov al, [si]; inc si; 
 
+Bigger:		;mov [si], ah
+		;inc si
+		;cmp al, 0
+		;jne BegConv
+
+
+		mov [si], '$'
+
+
+; reverse str
+		mov si, [bp + 6]   ; SI = addr of str
+		call StrLen   ; CX = strlen without '$'
+		mov bx, [bp + 6]
+		add bx, cx
+		dec bx   ; do not move '$'
+
+Reverse:	mov al, [si]
+		mov ah, [bx]
+		mov [bx], al
+		mov [si], ah
+		
+		dec bx
+		inc si
+		cmp bx, si
+		ja Reverse
 		;xchg   reverse str
 		;and divide another way if 2^n
 		
-		mov [si], '$'
 
 		pop dx cx bx ax si			
 		pop bp
@@ -122,12 +147,12 @@ Converting:	div bh
 ; Entry: SI = addr str
 ; Returns: CX = str len
 ; Note: str ends with $, $ is not included in str len
-; Destroy: CX, SI
+; Destroy: CX
 ;------------------------------------------------
 StrLen		proc
 		;mov si, offset _Str ;do in main not here
 
-		push ax
+		push ax si
 		mov cx, 0
 
 Count:		lodsb   ; mov al, [si]; inc si; 
@@ -137,7 +162,7 @@ Count:		lodsb   ; mov al, [si]; inc si;
 		
 		dec cx  ; $ - end sym
 
-		pop ax
+		pop si ax
 		
 		ret
 		endp
